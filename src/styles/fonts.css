@@ -1,0 +1,66 @@
+/* Vazir Thin (100) */
+@font-face {
+  font-family: "Vazir";
+  src: url("/fonts/Vazir/Vazir-Thin.eot");
+  src:
+    url("/fonts/Vazir/Vazir-Thin.eot?#iefix") format("embedded-opentype"),
+    url("/fonts/Vazir/Vazir-Thin.woff2") format("woff2"),
+    url("/fonts/Vazir/Vazir-Thin.woff") format("woff"),
+    url("/fonts/Vazir/Vazir-Thin.ttf") format("truetype");
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Vazir Light (300) */
+@font-face {
+  font-family: "Vazir";
+  src: url("/fonts/Vazir/Vazir-Light.eot");
+  src:
+    url("/fonts/Vazir/Vazir-Light.eot?#iefix") format("embedded-opentype"),
+    url("/fonts/Vazir/Vazir-Light.woff2") format("woff2"),
+    url("/fonts/Vazir/Vazir-Light.woff") format("woff"),
+    url("/fonts/Vazir/Vazir-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Vazir Regular (400) */
+@font-face {
+  font-family: "Vazir";
+  /* changed: use the same /fonts/Vazir path as other weights */
+  src:
+    url("/fonts/Vazir/Vazir-Regular.woff2") format("woff2"),
+    url("/fonts/Vazir/Vazir-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+/* add other weights if you use them (500, 700, etc.) */
+@font-face {
+  font-family: "Vazir";
+  src: url("/fonts/Vazir/Vazir-Medium.eot");
+  src:
+    url("/fonts/Vazir/Vazir-Medium.eot?#iefix") format("embedded-opentype"),
+    url("/fonts/Vazir/Vazir-Medium.woff2") format("woff2"),
+    url("/fonts/Vazir/Vazir-Medium.woff") format("woff"),
+    url("/fonts/Vazir/Vazir-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Vazir Bold (700) */
+@font-face {
+  font-family: "Vazir";
+  src: url("/fonts/Vazir/Vazir-Bold.eot");
+  src:
+    url("/fonts/Vazir/Vazir-Bold.eot?#iefix") format("embedded-opentype"),
+    url("/fonts/Vazir/Vazir-Bold.woff2") format("woff2"),
+    url("/fonts/Vazir/Vazir-Bold.woff") format("woff"),
+    url("/fonts/Vazir/Vazir-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

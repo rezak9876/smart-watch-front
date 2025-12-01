@@ -98,6 +98,9 @@ export default {
         "scale-in": "scale-in 0.2s ease-out",
         "pulse-soft": "pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
+      fontFamily: {
+        sans: ["Vazir", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Arial", "Helvetica Neue", "sans-serif"],
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
