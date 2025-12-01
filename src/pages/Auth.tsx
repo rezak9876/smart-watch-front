@@ -73,7 +73,7 @@ export default function Auth() {
           </div>
 
           <div className="space-y-6">
-            <div className="flex gap-2">
+            <div className={`flex gap-2 ${isRTL ? "" : "flex-row-reverse"}`}>
               
               <Input
                 type="tel"
