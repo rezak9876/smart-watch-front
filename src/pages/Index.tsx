@@ -29,7 +29,7 @@ const Index = () => {
             <Watch className="w-10 h-10 text-primary-foreground" />
           </div>
           <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-br from-primary to-primary-glow bg-clip-text text-transparent">
-            {isRTL ? "سلامت نگهبان" : "Health Guardian"}
+            {isRTL ? "نگهبان سلامت" : "Health Guardian"}
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
             {isRTL
@@ -95,7 +95,7 @@ const Index = () => {
           </Button>
           <p className="text-sm text-muted-foreground">
             {isRTL
-              ? "رایگان برای همیشه • بدون نیاز به کارت اعتباری"
+              ? "دانشگاه صعنتی امیرکبیر"
               : "Free forever • No credit card required"}
           </p>
         </div>
