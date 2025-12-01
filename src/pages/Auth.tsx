@@ -67,22 +67,14 @@ export default function Auth() {
             <h1 className="text-2xl font-bold mb-2">{t("auth.title")}</h1>
             <p className="text-muted-foreground">
               {isRTL
-                ? "برای ورود یا ثبت‌نام شماره موبایل خود را وارد کنید"
+                ? "شماره موبایل"
                 : "Enter your mobile number to login or register"}
             </p>
           </div>
 
           <div className="space-y-6">
             <div className="flex gap-2">
-              <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className="h-11 px-3 rounded-lg border-2 border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="+98">🇮🇷 +98</option>
-                <option value="+1">🇺🇸 +1</option>
-                <option value="+44">🇬🇧 +44</option>
-              </select>
+              
               <Input
                 type="tel"
                 placeholder={t("auth.mobileNumberPlaceholder")}
@@ -92,6 +84,15 @@ export default function Auth() {
                 className="flex-1"
                 dir="ltr"
               />
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="h-11 px-3 rounded-lg border-2 border-input bg-background text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="+98">🇮🇷 +98</option>
+                <option value="+1">🇺🇸 +1</option>
+                <option value="+44">🇬🇧 +44</option>
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
