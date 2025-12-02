@@ -66,7 +66,6 @@ export const AppLayout = ({
       {isAuthenticated && (
         <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
           <div className="flex h-16 items-center justify-between px-4">
-            <h1 className="text-lg font-semibold">نگهبان سلامت</h1>
             <Button
               variant="ghost"
               size="icon"
@@ -74,6 +73,8 @@ export const AppLayout = ({
             >
               {menuOpen ? <X size={24} /> : <Menu size={24} />}
             </Button>
+            <h1 className="text-lg font-semibold">نگهبان سلامت</h1>
+
           </div>
         </header>
       )}
