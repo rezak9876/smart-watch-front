@@ -130,7 +130,8 @@ export default function Dashboard() {
           back: t("common.back"),
           close: t("common.done"),
           last: t("common.done"),
-          next: t("common.next"),
+          next: isRTL ? "بعدی" : t("common.next"),
+          nextLabelWithProgress: isRTL ? "بعدی (قدم {step} از {steps})" : t("common.next"),
           skip: t("common.skip"),
         }}
       />
