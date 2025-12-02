@@ -66,7 +66,7 @@ export const AppLayout = ({
       {isAuthenticated && (
         <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
           <div className="flex h-16 items-center justify-between px-4">
-            <h1 className="text-lg font-semibold">سلامت نگهبان</h1>
+            <h1 className="text-lg font-semibold">نگهبان سلامت</h1>
             <Button
               variant="ghost"
               size="icon"
@@ -124,7 +124,7 @@ export const AppLayout = ({
         {isAuthenticated && (
           <aside className="hidden md:flex w-64 flex-col border-e border-border bg-card">
             <div className="p-6 border-b border-border">
-              <h1 className="text-xl font-bold">سلامت نگهبان</h1>
+              <h1 className="text-xl font-bold">نگهبان سلامت</h1>
               {user && (
                 <p className="text-sm text-muted-foreground mt-1">
                   {user.firstName || user.mobile}

@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
       manifest: {
-        name: "سلامت نگهبان - Health Guardian",
-        short_name: "سلامت نگهبان",
+        name: "نگهبان سلامت - Health Guardian",
+        short_name: "نگهبان سلامت",
         description: "سیستم نظارت بر سلامت سالمندان - Elderly Health Monitoring System",
         theme_color: "#0D9488",
         background_color: "#ffffff",
