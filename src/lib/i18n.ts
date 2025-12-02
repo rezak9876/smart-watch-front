@@ -27,7 +27,7 @@ const resources = {
         title: "اتصال ساعت",
         description: "کد زیر را در ساعت هوشمند وارد کنید",
         codeEntered: "وارد کردم",
-        regenerate: "تولید کد مجدد",
+        regenerate: "تولید مجدد کد",
       },
       // Dashboard
       dashboard: {
