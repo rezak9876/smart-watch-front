@@ -37,29 +37,9 @@ export default function OTP() {
     }
   }, [countdown]);
 
-  const handleChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
-
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (
-    index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleVerify = async () => {
-    const otpCode = code.join("");
+  // Change: allow optional override to ensure we verify the latest typed code
+  const handleVerify = async (otpOverride?: string) => {
+    const otpCode = otpOverride ?? code.join("");
     if (otpCode.length !== 6) {
       toast.error(t("otp.invalidCode"));
       return;
@@ -90,6 +70,32 @@ export default function OTP() {
       toast.error(t("common.error"));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+
+    const newCode = [...code];
+    newCode[index] = value;
+    setCode(newCode);
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    // New: auto-submit when last digit is entered and all digits are filled
+    if (index === 5 && value && newCode.every((d) => d.length === 1)) {
+      handleVerify(newCode.join(""));
+    }
+  };
+
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace" && !code[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
