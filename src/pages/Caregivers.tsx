@@ -7,6 +7,8 @@ import { api } from "@/lib/api";
 import { Plus, Edit, Trash2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface Caregiver {
   id: string;
@@ -68,9 +70,33 @@ export default function Caregivers() {
   if (isLoading) {
     return (
       <AppLayout requireAuth requireWatch>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-pulse-soft text-muted-foreground">
-            {t("common.loading")}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton height={36} width={200} />
+              <Skeleton height={20} width={150} className="mt-2" />
+            </div>
+            <Skeleton height={40} width={120} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} variant="elevated" padding="default">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <Skeleton height={24} width={150} />
+                      <Skeleton height={16} width={100} className="mt-1" />
+                    </div>
+                    <Skeleton height={24} width={60} />
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton height={36} containerClassName="flex-1" />
+                    <Skeleton height={36} width={36} />
+                    <Skeleton height={36} width={36} />
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
       </AppLayout>

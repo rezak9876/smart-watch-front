@@ -12,6 +12,8 @@ import {
   LogOut,
   Menu,
   X,
+  FileText,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/base/Button";
 import { useState } from "react";
@@ -28,7 +30,7 @@ export const AppLayout = ({
   requireAuth = false,
   requireWatch = false,
 }: AppLayoutProps) => {
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, logout, setupStatus } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
@@ -39,15 +41,17 @@ export const AppLayout = ({
     if (requireAuth && !isAuthenticated) {
       navigate("/auth");
     }
-    if (requireWatch && !user?.hasWatch) {
+    if (requireWatch && !setupStatus.watch_paired) {
       navigate("/watch-pairing");
     }
-  }, [requireAuth, requireWatch, isAuthenticated, user, navigate]);
+  }, [requireAuth, requireWatch, isAuthenticated, setupStatus, navigate]);
 
   const navigation = [
     { name: t("dashboard.title"), icon: LayoutDashboard, path: "/dashboard" },
     { name: t("caregivers.title"), icon: Users, path: "/caregivers" },
     { name: t("medications.title"), icon: Pill, path: "/medications" },
+    { name: isRTL ? "نسخه‌ها" : "Prescriptions", icon: FileText, path: "/prescriptions" },
+    { name: isRTL ? "مصرف دارو" : "Consumption", icon: Activity, path: "/consumption" },
     { name: t("notifications.title"), icon: Bell, path: "/notifications" },
     { name: t("chat.title"), icon: MessageCircle, path: "/chat" },
     { name: t("profile.title"), icon: User, path: "/profile" },
@@ -131,7 +135,7 @@ export const AppLayout = ({
                 </p>
               )}
             </div>
-            <nav className="flex-1 p-4 space-y-2">
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
