@@ -1,6 +1,9 @@
 // Mock API service following Laravel resource controller conventions
 // All endpoints follow the pattern: /resource/{id}
 
+import { Permission, getRolePermissions } from "./ability";
+import { SetupStatus } from "@/store/authStore";
+
 const API_BASE_URL = "https://api.example.com";
 
 // Simulate network delay
@@ -18,14 +21,48 @@ export const api = {
     verifyOtp: async (
       mobile: string,
       code: string
-    ): Promise<{ success: boolean; isNewUser: boolean; token: string }> => {
+    ): Promise<{
+      success: boolean;
+      isNewUser: boolean;
+      token: string;
+      setup_status: SetupStatus;
+      permissions: Permission[];
+      user: {
+        id: string;
+        mobile: string;
+        firstName?: string;
+        lastName?: string;
+        role: string;
+      };
+    }> => {
       await delay(800);
       console.log("API: POST /auth/verify", { mobile, code });
+      const isNewUser = !localStorage.getItem(`user_${mobile}`);
+      const role = localStorage.getItem(`user_role_${mobile}`) || "elder";
       return {
         success: code === "123456",
-        isNewUser: !localStorage.getItem(`user_${mobile}`),
+        isNewUser,
         token: "mock_token_" + Date.now(),
+        setup_status: {
+          profile_completed: !isNewUser,
+          watch_paired: !isNewUser,
+          owner_info_completed: !isNewUser,
+          medications_set: !isNewUser,
+        },
+        permissions: getRolePermissions(role),
+        user: {
+          id: Date.now().toString(),
+          mobile,
+          firstName: isNewUser ? undefined : "علی",
+          lastName: isNewUser ? undefined : "احمدی",
+          role,
+        },
       };
+    },
+    getPermissions: async (): Promise<{ permissions: Permission[] }> => {
+      await delay(300);
+      const role = localStorage.getItem("user_role") || "elder";
+      return { permissions: getRolePermissions(role) };
     },
   },
 
@@ -64,16 +101,25 @@ export const api = {
 
   // Watch pairing resource
   watches: {
-    generateCode: async (): Promise<{ code: string }> => {
+    generateCode: async (): Promise<{ code: string; session_token: string }> => {
       await delay(500);
       console.log("API: POST /watches/generate-code");
       const code = Math.floor(100000 + Math.random() * 900000).toString();
-      return { code };
+      const session_token = "session_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+      return { code, session_token };
     },
     pair: async (code: string): Promise<{ success: boolean }> => {
       await delay(800);
       console.log("API: POST /watches/pair", { code });
       return { success: true };
+    },
+    confirmPairing: async (
+      session_token: string,
+      watch_code: string
+    ): Promise<{ success: boolean }> => {
+      await delay(800);
+      console.log("API: POST /watches/pairing/confirm", { session_token, watch_code });
+      return { success: watch_code === "123456" };
     },
   },
 
@@ -121,6 +167,13 @@ export const api = {
           mobile: "09121234567",
           role: "doctor",
         },
+        {
+          id: "2",
+          firstName: "زهرا",
+          lastName: "محمدی",
+          mobile: "09129876543",
+          role: "nurse",
+        },
       ];
     },
     store: async (data: any): Promise<any> => {
@@ -131,7 +184,22 @@ export const api = {
     show: async (id: string): Promise<any> => {
       await delay(500);
       console.log(`API: GET /caregivers/${id}`);
-      return { id };
+      if (id === "1") {
+        return {
+          id: "1",
+          firstName: "دکتر محمد",
+          lastName: "رضایی",
+          mobile: "09121234567",
+          role: "doctor",
+        };
+      }
+      return {
+        id: "2",
+        firstName: "زهرا",
+        lastName: "محمدی",
+        mobile: "09129876543",
+        role: "nurse",
+      };
     },
     update: async (id: string, data: any): Promise<any> => {
       await delay(500);
@@ -149,7 +217,10 @@ export const api = {
     index: async (): Promise<any[]> => {
       await delay(500);
       console.log("API: GET /medications");
-      return [];
+      return [
+        { id: "1", name: "آسپرین", description: "برای کاهش درد و تب" },
+        { id: "2", name: "متفورمین", description: "برای کنترل قند خون" },
+      ];
     },
     store: async (data: any): Promise<any> => {
       await delay(500);
@@ -159,7 +230,10 @@ export const api = {
     show: async (id: string): Promise<any> => {
       await delay(500);
       console.log(`API: GET /medications/${id}`);
-      return { id };
+      if (id === "1") {
+        return { id: "1", name: "آسپرین", description: "برای کاهش درد و تب" };
+      }
+      return { id: "2", name: "متفورمین", description: "برای کنترل قند خون" };
     },
     update: async (id: string, data: any): Promise<any> => {
       await delay(500);
@@ -172,12 +246,168 @@ export const api = {
     },
   },
 
+  // Prescriptions resource
+  prescriptions: {
+    index: async (): Promise<any[]> => {
+      await delay(500);
+      console.log("API: GET /prescriptions");
+      return [
+        {
+          id: "1",
+          items: [
+            { medication_id: "1", medication_name: "آسپرین", cycle_hours: 8, total_count: 30 },
+            { medication_id: "2", medication_name: "متفورمین", cycle_hours: 12, total_count: null },
+          ],
+          created_at: new Date().toISOString(),
+          doctor_name: "دکتر محمد رضایی",
+        },
+      ];
+    },
+    store: async (data: any): Promise<any> => {
+      await delay(500);
+      console.log("API: POST /prescriptions", data);
+      return { id: Date.now().toString(), ...data, created_at: new Date().toISOString() };
+    },
+    show: async (id: string): Promise<any> => {
+      await delay(500);
+      console.log(`API: GET /prescriptions/${id}`);
+      return {
+        id,
+        items: [
+          { medication_id: "1", medication_name: "آسپرین", cycle_hours: 8, total_count: 30 },
+        ],
+        created_at: new Date().toISOString(),
+        doctor_name: "دکتر محمد رضایی",
+      };
+    },
+    update: async (id: string, data: any): Promise<any> => {
+      await delay(500);
+      console.log(`API: PUT /prescriptions/${id}`, data);
+      return { id, ...data };
+    },
+    destroy: async (id: string): Promise<void> => {
+      await delay(500);
+      console.log(`API: DELETE /prescriptions/${id}`);
+    },
+  },
+
+  // Consumption resource
+  consumptions: {
+    index: async (): Promise<any[]> => {
+      await delay(500);
+      console.log("API: GET /consumptions");
+      const today = new Date();
+      return [
+        {
+          id: "1",
+          prescription_item_id: "1",
+          medication_name: "آسپرین",
+          scheduled_at: new Date(today.setHours(8, 0, 0, 0)).toISOString(),
+          consumed_at: new Date(today.setHours(8, 15, 0, 0)).toISOString(),
+          status: "consumed",
+        },
+        {
+          id: "2",
+          prescription_item_id: "1",
+          medication_name: "آسپرین",
+          scheduled_at: new Date(today.setHours(16, 0, 0, 0)).toISOString(),
+          consumed_at: null,
+          status: "pending",
+        },
+        {
+          id: "3",
+          prescription_item_id: "2",
+          medication_name: "متفورمین",
+          scheduled_at: new Date(today.setHours(12, 0, 0, 0)).toISOString(),
+          consumed_at: null,
+          status: "missed",
+        },
+      ];
+    },
+    store: async (data: any): Promise<any> => {
+      await delay(500);
+      console.log("API: POST /consumptions", data);
+      return { id: Date.now().toString(), ...data, consumed_at: new Date().toISOString() };
+    },
+    update: async (id: string, data: any): Promise<any> => {
+      await delay(500);
+      console.log(`API: PUT /consumptions/${id}`, data);
+      return { id, ...data };
+    },
+    getSchedule: async (date: string): Promise<any[]> => {
+      await delay(500);
+      console.log(`API: GET /consumptions/schedule?date=${date}`);
+      return [
+        { time: "08:00", medication: "آسپرین", status: "consumed" },
+        { time: "12:00", medication: "متفورمین", status: "missed" },
+        { time: "16:00", medication: "آسپرین", status: "pending" },
+        { time: "20:00", medication: "متفورمین", status: "pending" },
+      ];
+    },
+    getStats: async (): Promise<any> => {
+      await delay(500);
+      console.log("API: GET /consumptions/stats");
+      return {
+        total: 50,
+        consumed: 42,
+        missed: 8,
+        adherence_rate: 84,
+      };
+    },
+  },
+
   // Notifications resource
   notifications: {
     index: async (): Promise<any[]> => {
       await delay(500);
       console.log("API: GET /notifications");
-      return [];
+      return [
+        {
+          id: "1",
+          type: "fall",
+          title: "سقوط تشخیص داده شد",
+          message: "آیا سقوط کردید؟",
+          timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+          isRead: false,
+          actionRequired: true,
+        },
+        {
+          id: "2",
+          type: "high_heart_rate",
+          title: "ضربان قلب بالا",
+          message: "ضربان قلب شما 120 است که بالاتر از حد نرمال است.",
+          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          isRead: false,
+          actionRequired: false,
+        },
+        {
+          id: "3",
+          type: "response",
+          title: "پاسخ بیمار",
+          message: "بیمار پاسخ داد: خیر، سقوط نکردم.",
+          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+          isRead: true,
+          actionRequired: false,
+        },
+        {
+          id: "4",
+          type: "follow_up",
+          title: "پیگیری",
+          message: "دکتر محمد رضایی پیگیری کرد.",
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+          isRead: true,
+          actionRequired: false,
+        },
+        {
+          id: "5",
+          type: "medication_reminder",
+          title: "یادآور دارو",
+          message: "زمان مصرف آسپرین فرا رسیده است.",
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+          isRead: true,
+          actionRequired: false,
+        },
+      ];
     },
     show: async (id: string): Promise<any> => {
       await delay(500);
@@ -200,7 +430,26 @@ export const api = {
     index: async (caregiverId: string): Promise<any[]> => {
       await delay(500);
       console.log(`API: GET /messages?caregiver_id=${caregiverId}`);
-      return [];
+      return [
+        {
+          id: "1",
+          text: "سلام، حال شما چطور است؟",
+          senderId: "caregiver",
+          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        },
+        {
+          id: "2",
+          text: "سلام، خوبم ممنون. داروهایم را مصرف کردم.",
+          senderId: "user",
+          timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+        },
+        {
+          id: "3",
+          text: "آفرین! یادتان باشد ساعت ۴ هم باید آسپرین بخورید.",
+          senderId: "caregiver",
+          timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
+        },
+      ];
     },
     store: async (data: any): Promise<any> => {
       await delay(500);
