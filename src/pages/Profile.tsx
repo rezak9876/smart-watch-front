@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/base/Button";
 import { Input } from "@/components/base/Input";
@@ -10,23 +11,37 @@ import { api } from "@/lib/api";
 import { User, Camera } from "lucide-react";
 
 export default function Profile() {
-  const { user, updateUser } = useAuthStore();
+  const { user, updateUser, setupStatus, updateSetupStatus, getNextSetupStep } = useAuthStore();
   const { t, i18n } = useTranslation();
-  const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(!setupStatus.profile_completed);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
   });
   const isRTL = i18n.language === "fa";
+  const isSetupMode = !setupStatus.profile_completed;
 
   const handleSave = async () => {
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      toast.error(isRTL ? "نام و نام خانوادگی الزامی است" : "First name and last name are required");
+      return;
+    }
+
     setIsLoading(true);
     try {
       await api.users.update(user!.id, formData);
       updateUser(formData);
-      toast.success(isRTL ? "تغییرات ذخیره شد" : "Changes saved");
-      setIsEditing(false);
+      
+      if (isSetupMode) {
+        updateSetupStatus({ profile_completed: true });
+        toast.success(isRTL ? "پروفایل تکمیل شد" : "Profile completed");
+        navigate(getNextSetupStep());
+      } else {
+        toast.success(isRTL ? "تغییرات ذخیره شد" : "Changes saved");
+        setIsEditing(false);
+      }
     } catch (error) {
       toast.error(t("common.error"));
     } finally {
@@ -40,9 +55,19 @@ export default function Profile() {
         <div>
           <h1 className="text-3xl font-bold mb-2">{t("profile.title")}</h1>
           <p className="text-muted-foreground">
-            {isRTL ? "مدیریت اطلاعات شخصی" : "Manage your personal information"}
+            {isSetupMode
+              ? isRTL ? "لطفاً اطلاعات خود را تکمیل کنید" : "Please complete your information"
+              : isRTL ? "مدیریت اطلاعات شخصی" : "Manage your personal information"}
           </p>
         </div>
+
+        {isSetupMode && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 text-primary text-sm">
+            <span className="font-medium">
+              {isRTL ? "مرحله ۱ از ۳: تکمیل پروفایل" : "Step 1 of 3: Complete Profile"}
+            </span>
+          </div>
+        )}
 
         <Card variant="elevated" padding="lg">
           <div className="space-y-6">
@@ -65,7 +90,8 @@ export default function Profile() {
                 onChange={(e) =>
                   setFormData({ ...formData, firstName: e.target.value })
                 }
-                disabled={!isEditing}
+                disabled={!isEditing && !isSetupMode}
+                required
               />
 
               <Input
@@ -74,34 +100,41 @@ export default function Profile() {
                 onChange={(e) =>
                   setFormData({ ...formData, lastName: e.target.value })
                 }
-                disabled={!isEditing}
+                disabled={!isEditing && !isSetupMode}
+                required
               />
             </div>
 
             <div className="flex gap-3">
-              {isEditing ? (
+              {isEditing || isSetupMode ? (
                 <>
                   <Button
                     onClick={handleSave}
                     disabled={isLoading}
                     className="flex-1"
                   >
-                    {isLoading ? t("common.loading") : t("profile.save")}
+                    {isLoading
+                      ? t("common.loading")
+                      : isSetupMode
+                        ? isRTL ? "ادامه" : "Continue"
+                        : t("profile.save")}
                   </Button>
-                  <Button
-                    onClick={() => {
-                      setIsEditing(false);
-                      setFormData({
-                        firstName: user?.firstName || "",
-                        lastName: user?.lastName || "",
-                      });
-                    }}
-                    variant="outline"
-                    disabled={isLoading}
-                    className="flex-1"
-                  >
-                    {t("caregivers.cancel")}
-                  </Button>
+                  {!isSetupMode && (
+                    <Button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setFormData({
+                          firstName: user?.firstName || "",
+                          lastName: user?.lastName || "",
+                        });
+                      }}
+                      variant="outline"
+                      disabled={isLoading}
+                      className="flex-1"
+                    >
+                      {t("common.cancel")}
+                    </Button>
+                  )}
                 </>
               ) : (
                 <Button onClick={() => setIsEditing(true)} className="w-full">

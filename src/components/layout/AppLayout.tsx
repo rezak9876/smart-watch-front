@@ -51,7 +51,7 @@ export const AppLayout = ({
     { name: t("caregivers.title"), icon: Users, path: "/caregivers" },
     { name: t("medications.title"), icon: Pill, path: "/medications" },
     { name: isRTL ? "نسخه‌ها" : "Prescriptions", icon: FileText, path: "/prescriptions" },
-    { name: isRTL ? "مصرف دارو" : "Consumption", icon: Activity, path: "/consumption" },
+    { name: isRTL ? "مصرف دارو" : "Consumption", icon: Activity, path: "/consumptions" },
     { name: t("notifications.title"), icon: Bell, path: "/notifications" },
     { name: t("chat.title"), icon: MessageCircle, path: "/chat" },
     { name: t("profile.title"), icon: User, path: "/profile" },

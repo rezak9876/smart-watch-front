@@ -17,7 +17,14 @@ import Caregivers from "./pages/Caregivers";
 import CaregiverCreate from "./pages/CaregiverCreate";
 import CaregiverEdit from "./pages/CaregiverEdit";
 import Medications from "./pages/Medications";
+import MedicationCreate from "./pages/MedicationCreate";
+import MedicationEdit from "./pages/MedicationEdit";
+import Prescriptions from "./pages/Prescriptions";
+import PrescriptionCreate from "./pages/PrescriptionCreate";
+import PrescriptionEdit from "./pages/PrescriptionEdit";
+import Consumptions from "./pages/Consumptions";
 import Notifications from "./pages/Notifications";
+import TestNotifications from "./pages/TestNotifications";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
@@ -47,7 +54,14 @@ const App = () => {
             <Route path="/caregivers/create" element={<CaregiverCreate />} />
             <Route path="/caregivers/edit/:id" element={<CaregiverEdit />} />
             <Route path="/medications" element={<Medications />} />
+            <Route path="/medications/create" element={<MedicationCreate />} />
+            <Route path="/medications/edit/:id" element={<MedicationEdit />} />
+            <Route path="/prescriptions" element={<Prescriptions />} />
+            <Route path="/prescriptions/create" element={<PrescriptionCreate />} />
+            <Route path="/prescriptions/edit/:id" element={<PrescriptionEdit />} />
+            <Route path="/consumptions" element={<Consumptions />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/test-notifications" element={<TestNotifications />} />
             <Route path="/chat/:caregiverId" element={<Chat />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="*" element={<NotFound />} />

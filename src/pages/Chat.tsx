@@ -1,17 +1,25 @@
-import { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/base/Button";
-import { Input } from "@/components/base/Input";
-import { Card } from "@/components/base/Card";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuthStore } from "@/store/authStore";
 import { api } from "@/lib/api";
-import { Send, ArrowRight, ArrowLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import { ArrowRight, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/base/Button";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import {
+  MainContainer,
+  ChatContainer,
+  MessageList,
+  Message,
+  MessageInput,
+  ConversationHeader,
+  Avatar,
+} from "@chatscope/chat-ui-kit-react";
 
-interface Message {
+interface ChatMessage {
   id: string;
   text: string;
   senderId: string;
@@ -20,24 +28,19 @@ interface Message {
 
 export default function Chat() {
   const { caregiverId } = useParams();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputText, setInputText] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuthStore();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const isRTL = i18n.language === "fa";
+  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   useEffect(() => {
     if (caregiverId) {
       loadMessages();
     }
   }, [caregiverId]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   const loadMessages = async () => {
     try {
@@ -48,49 +51,34 @@ export default function Chat() {
     }
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const handleSend = async (text: string) => {
+    if (!text.trim()) return;
 
-  const handleSend = async () => {
-    if (!inputText.trim()) return;
-
-    const newMessage: Message = {
+    const newMessage: ChatMessage = {
       id: Date.now().toString(),
-      text: inputText,
+      text,
       senderId: user!.id,
       timestamp: new Date().toISOString(),
     };
 
     setMessages([...messages, newMessage]);
-    setInputText("");
 
     try {
       await api.messages.store({
         caregiverId,
-        text: inputText,
+        text,
       });
     } catch (error) {
       console.error("Failed to send message", error);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
-  const BackIcon = isRTL ? ArrowRight : ArrowLeft;
-
   if (isLoading) {
     return (
       <AppLayout requireAuth requireWatch>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-pulse-soft text-muted-foreground">
-            {t("common.loading")}
-          </div>
+        <div className="max-w-4xl mx-auto space-y-4">
+          <Skeleton height={60} />
+          <Skeleton height={500} />
         </div>
       </AppLayout>
     );
@@ -98,101 +86,66 @@ export default function Chat() {
 
   return (
     <AppLayout requireAuth requireWatch>
-      <div className="max-w-4xl mx-auto space-y-4">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/caregivers")}
-          >
-            <BackIcon size={20} />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{t("chat.title")}</h1>
-            <p className="text-sm text-muted-foreground">
-              {isRTL ? "آنلاین" : "Online"}
-            </p>
-          </div>
-        </div>
-
-        <Card variant="elevated" padding="none" className="h-[calc(100vh-16rem)]">
-          <div className="flex flex-col h-full">
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {messages.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  {isRTL
-                    ? "هنوز پیامی ارسال نشده است"
-                    : "No messages yet"}
-                </div>
-              ) : (
-                <>
-                  {messages.map((message) => {
-                    const isOwnMessage = message.senderId === user!.id;
-                    return (
-                      <div
-                        key={message.id}
-                        className={cn(
-                          "flex",
-                          isOwnMessage ? "justify-end" : "justify-start"
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "max-w-[70%] rounded-2xl px-4 py-3 shadow-sm",
-                            isOwnMessage
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
-                          )}
-                        >
-                          <p className="text-sm break-words">{message.text}</p>
-                          <p
-                            className={cn(
-                              "text-xs mt-1",
-                              isOwnMessage
-                                ? "text-primary-foreground/70"
-                                : "text-muted-foreground"
-                            )}
-                          >
-                            {new Date(message.timestamp).toLocaleTimeString(
-                              isRTL ? "fa-IR" : "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
-                </>
-              )}
-            </div>
-
-            {/* Input Area */}
-            <div className="p-4 border-t border-border">
-              <div className="flex gap-2">
-                <Input
-                  placeholder={t("chat.typingPlaceholder")}
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={handleSend}
-                  disabled={!inputText.trim()}
-                  size="icon"
-                  className="shrink-0"
-                >
-                  <Send size={18} />
+      <div className="max-w-4xl mx-auto" style={{ height: "calc(100vh - 12rem)" }}>
+        <MainContainer>
+          <ChatContainer>
+            <ConversationHeader>
+              <ConversationHeader.Back>
+                <Button variant="ghost" size="icon" onClick={() => navigate("/caregivers")}>
+                  <BackIcon size={20} />
                 </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
+              </ConversationHeader.Back>
+              <Avatar src="/placeholder.svg" name="Caregiver" />
+              <ConversationHeader.Content
+                userName={t("chat.title")}
+                info={isRTL ? "آنلاین" : "Online"}
+              />
+            </ConversationHeader>
+
+            <MessageList>
+              {messages.length === 0 ? (
+                <MessageList.Content
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    height: "100%",
+                    textAlign: "center",
+                    fontSize: "1rem",
+                  }}
+                >
+                  {isRTL ? "هنوز پیامی ارسال نشده است" : "No messages yet"}
+                </MessageList.Content>
+              ) : (
+                messages.map((message) => (
+                  <Message
+                    key={message.id}
+                    model={{
+                      message: message.text,
+                      sentTime: message.timestamp,
+                      sender: message.senderId === user!.id ? "You" : "Other",
+                      direction: message.senderId === user!.id ? "outgoing" : "incoming",
+                      position: "single",
+                    }}
+                  >
+                    <Message.Footer
+                      sentTime={new Date(message.timestamp).toLocaleTimeString(
+                        isRTL ? "fa-IR" : "en-US",
+                        { hour: "2-digit", minute: "2-digit" }
+                      )}
+                    />
+                  </Message>
+                ))
+              )}
+            </MessageList>
+
+            <MessageInput
+              placeholder={t("chat.typingPlaceholder")}
+              onSend={handleSend}
+              attachButton={false}
+            />
+          </ChatContainer>
+        </MainContainer>
       </div>
     </AppLayout>
   );
