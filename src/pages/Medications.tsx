@@ -1,29 +1,43 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/base/Button";
-import { Input } from "@/components/base/Input";
 import { Card } from "@/components/base/Card";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useAuthStore } from "@/store/authStore";
+import { useAbilityStore } from "@/store/abilityStore";
 import { api } from "@/lib/api";
-import { Plus, X, Lock } from "lucide-react";
+import { Plus, Edit2, Trash2, Lock, Pill } from "lucide-react";
 import { toast } from "sonner";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Medication {
   id: string;
   name: string;
-  cycle: string;
   description: string;
 }
 
 export default function Medications() {
   const [medications, setMedications] = useState<Medication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { user } = useAuthStore();
+  const { ability } = useAbilityStore();
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const isRTL = i18n.language === "fa";
-  const canEdit = user?.role === "doctor";
+  const canEdit = ability.can("manage", "Medication") || user?.role === "doctor";
 
   useEffect(() => {
     loadMedications();
@@ -38,59 +52,25 @@ export default function Medications() {
     }
   };
 
-  const addMedication = () => {
-    setMedications([
-      ...medications,
-      { id: Date.now().toString(), name: "", cycle: "", description: "" },
-    ]);
-  };
-
-  const removeMedication = (id: string) => {
-    setMedications(medications.filter((med) => med.id !== id));
-  };
-
-  const updateMedication = (
-    id: string,
-    field: "name" | "cycle" | "description",
-    value: string
-  ) => {
-    setMedications(
-      medications.map((med) =>
-        med.id === id ? { ...med, [field]: value } : med
-      )
-    );
-  };
-
-  const handleSave = async () => {
-    if (!canEdit) return;
-
-    setIsSaving(true);
+  const handleDelete = async () => {
+    if (!deleteId) return;
     try {
-      for (const medication of medications) {
-        if (medication.name) {
-          if (medication.id.startsWith(Date.now().toString().slice(0, 10))) {
-            await api.medications.store(medication);
-          } else {
-            await api.medications.update(medication.id, medication);
-          }
-        }
-      }
-      toast.success(isRTL ? "داروها ذخیره شدند" : "Medications saved");
-      await loadMedications();
+      await api.medications.destroy(deleteId);
+      setMedications(medications.filter((med) => med.id !== deleteId));
+      toast.success(isRTL ? "دارو حذف شد" : "Medication deleted");
     } catch (error) {
       toast.error(t("common.error"));
     } finally {
-      setIsSaving(false);
+      setDeleteId(null);
     }
   };
 
   if (isLoading) {
     return (
       <AppLayout requireAuth requireWatch>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-pulse-soft text-muted-foreground">
-            {t("common.loading")}
-          </div>
+        <div className="max-w-3xl mx-auto space-y-6">
+          <Skeleton height={40} width={200} />
+          <Skeleton height={80} count={3} className="mb-4" />
         </div>
       </AppLayout>
     );
@@ -99,126 +79,101 @@ export default function Medications() {
   return (
     <AppLayout requireAuth requireWatch>
       <div className="max-w-3xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">{t("medications.title")}</h1>
-          <p className="text-muted-foreground">
-            {canEdit
-              ? isRTL
-                ? "مدیریت داروهای مالک ساعت"
-                : "Manage watch owner medications"
-              : t("medications.viewOnly")}
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">{t("medications.title")}</h1>
+            <p className="text-muted-foreground">
+              {canEdit
+                ? isRTL ? "مدیریت داروها" : "Manage medications"
+                : t("medications.viewOnly")}
+            </p>
+          </div>
+          {canEdit && (
+            <Button onClick={() => navigate("/medications/create")} className="gap-2">
+              <Plus size={18} />
+              {t("medications.addMedication")}
+            </Button>
+          )}
         </div>
 
-        <Card variant="elevated" padding="lg">
-          <div className="space-y-6">
-            {!canEdit && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
-                <Lock size={16} />
-                <span>{t("medications.doctorOnly")}</span>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  {isRTL ? "لیست داروها" : "Medications List"}
-                </h3>
-                {canEdit && (
-                  <Button
-                    onClick={addMedication}
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                  >
-                    <Plus size={16} />
-                    {t("medications.addMedication")}
-                  </Button>
-                )}
-              </div>
-
-              {medications.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  {isRTL
-                    ? "هنوز دارویی اضافه نشده است"
-                    : "No medications added yet"}
-                </p>
-              )}
-
-              <div className="space-y-4">
-                {medications.map((medication) => (
-                  <Card key={medication.id} variant="flat" padding="default">
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-1 space-y-3">
-                          <Input
-                            placeholder={t("medications.medicationName")}
-                            value={medication.name}
-                            onChange={(e) =>
-                              updateMedication(
-                                medication.id,
-                                "name",
-                                e.target.value
-                              )
-                            }
-                            disabled={!canEdit}
-                          />
-                          <Input
-                            type="number"
-                            placeholder={t("medications.cycle")}
-                            value={medication.cycle}
-                            onChange={(e) =>
-                              updateMedication(
-                                medication.id,
-                                "cycle",
-                                e.target.value
-                              )
-                            }
-                            disabled={!canEdit}
-                          />
-                          <Input
-                            placeholder={t("medications.description")}
-                            value={medication.description}
-                            onChange={(e) =>
-                              updateMedication(
-                                medication.id,
-                                "description",
-                                e.target.value
-                              )
-                            }
-                            disabled={!canEdit}
-                          />
-                        </div>
-                        {canEdit && (
-                          <Button
-                            onClick={() => removeMedication(medication.id)}
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:bg-destructive/10"
-                          >
-                            <X size={18} />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {canEdit && (
-              <Button
-                onClick={handleSave}
-                disabled={isSaving || medications.length === 0}
-                size="lg"
-                className="w-full"
-              >
-                {isSaving ? t("common.loading") : t("profile.save")}
-              </Button>
-            )}
+        {!canEdit && (
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
+            <Lock size={16} />
+            <span>{t("medications.doctorOnly")}</span>
           </div>
-        </Card>
+        )}
+
+        {medications.length === 0 ? (
+          <Card variant="elevated" padding="lg">
+            <div className="text-center py-8">
+              <Pill className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">
+                {isRTL ? "هنوز دارویی اضافه نشده است" : "No medications added yet"}
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {medications.map((medication) => (
+              <Card key={medication.id} variant="elevated" padding="default">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold">{medication.name}</p>
+                    {medication.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {medication.description}
+                      </p>
+                    )}
+                  </div>
+                  {canEdit && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => navigate(`/medications/edit/${medication.id}`)}
+                      >
+                        <Edit2 size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteId(medication.id)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isRTL ? "حذف دارو" : "Delete Medication"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isRTL
+                ? "آیا مطمئن هستید؟ این عمل قابل بازگشت نیست."
+                : "Are you sure? This action cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

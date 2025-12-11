@@ -9,12 +9,22 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import OTP from "./pages/OTP";
 import WatchPairing from "./pages/WatchPairing";
+import WatchPairingConfirm from "./pages/WatchPairingConfirm";
 import WatchOwnerInfo from "./pages/WatchOwnerInfo";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Caregivers from "./pages/Caregivers";
+import CaregiverCreate from "./pages/CaregiverCreate";
+import CaregiverEdit from "./pages/CaregiverEdit";
 import Medications from "./pages/Medications";
+import MedicationCreate from "./pages/MedicationCreate";
+import MedicationEdit from "./pages/MedicationEdit";
+import Prescriptions from "./pages/Prescriptions";
+import PrescriptionCreate from "./pages/PrescriptionCreate";
+import PrescriptionEdit from "./pages/PrescriptionEdit";
+import Consumptions from "./pages/Consumptions";
 import Notifications from "./pages/Notifications";
+import TestNotifications from "./pages/TestNotifications";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
@@ -22,7 +32,6 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    // Set initial direction based on language
     document.dir = "rtl";
   }, []);
 
@@ -37,15 +46,24 @@ const App = () => {
             <Route path="/auth" element={<Auth />} />
             <Route path="/otp" element={<OTP />} />
             <Route path="/watch-pairing" element={<WatchPairing />} />
+            <Route path="/watch-pairing-confirm" element={<WatchPairingConfirm />} />
             <Route path="/watch-owner-info" element={<WatchOwnerInfo />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/caregivers" element={<Caregivers />} />
+            <Route path="/caregivers/create" element={<CaregiverCreate />} />
+            <Route path="/caregivers/edit/:id" element={<CaregiverEdit />} />
             <Route path="/medications" element={<Medications />} />
+            <Route path="/medications/create" element={<MedicationCreate />} />
+            <Route path="/medications/edit/:id" element={<MedicationEdit />} />
+            <Route path="/prescriptions" element={<Prescriptions />} />
+            <Route path="/prescriptions/create" element={<PrescriptionCreate />} />
+            <Route path="/prescriptions/edit/:id" element={<PrescriptionEdit />} />
+            <Route path="/consumptions" element={<Consumptions />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/test-notifications" element={<TestNotifications />} />
             <Route path="/chat/:caregiverId" element={<Chat />} />
             <Route path="/chat" element={<Chat />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

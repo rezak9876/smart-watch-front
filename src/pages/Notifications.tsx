@@ -4,12 +4,14 @@ import { Button } from "@/components/base/Button";
 import { Card } from "@/components/base/Card";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { api } from "@/lib/api";
-import { Bell, CheckCircle } from "lucide-react";
+import { Bell, CheckCircle, AlertTriangle, Heart, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface Notification {
   id: string;
-  type: "fall" | "response" | "follow_up";
+  type: "fall" | "response" | "follow_up" | "high_heart_rate" | "medication_reminder";
   title: string;
   message: string;
   timestamp: string;
@@ -48,13 +50,23 @@ export default function Notifications() {
   };
 
   const getNotificationIcon = (type: string) => {
-    return <Bell className="w-5 h-5" />;
+    switch (type) {
+      case "fall":
+        return <AlertTriangle className="w-5 h-5" />;
+      case "high_heart_rate":
+        return <Heart className="w-5 h-5" />;
+      case "follow_up":
+        return <UserCheck className="w-5 h-5" />;
+      default:
+        return <Bell className="w-5 h-5" />;
+    }
   };
 
   const getNotificationColor = (type: string, isRead: boolean) => {
     if (isRead) return "border-border";
     switch (type) {
       case "fall":
+      case "high_heart_rate":
         return "border-health-critical/50 bg-health-critical/5";
       case "response":
         return "border-health-good/50 bg-health-good/5";
@@ -68,10 +80,12 @@ export default function Notifications() {
   if (isLoading) {
     return (
       <AppLayout requireAuth requireWatch>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-pulse-soft text-muted-foreground">
-            {t("common.loading")}
-          </div>
+        <div className="space-y-6">
+          <Skeleton height={36} width={200} />
+          <Skeleton height={20} width={150} />
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} height={100} />
+          ))}
         </div>
       </AppLayout>
     );
@@ -114,7 +128,7 @@ export default function Notifications() {
                   <div
                     className={cn(
                       "p-3 rounded-full",
-                      notification.type === "fall"
+                      notification.type === "fall" || notification.type === "high_heart_rate"
                         ? "bg-health-critical/10 text-health-critical"
                         : notification.type === "response"
                         ? "bg-health-good/10 text-health-good"

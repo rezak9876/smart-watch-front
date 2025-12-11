@@ -8,25 +8,37 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Watch, RefreshCw } from "lucide-react";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 export default function WatchPairing() {
   const [pairingCode, setPairingCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(true);
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const { pairWatch } = useAuthStore();
+  const { setSessionToken, setupStatus } = useAuthStore();
   const isRTL = i18n.language === "fa";
 
+  // Check prerequisites
   useEffect(() => {
+    if (!setupStatus.profile_completed) {
+      navigate("/profile");
+      return;
+    }
     generateCode();
   }, []);
 
   const generateCode = async () => {
+    setIsGenerating(true);
     try {
       const response = await api.watches.generateCode();
       setPairingCode(response.code);
+      setSessionToken(response.session_token);
     } catch (error) {
       toast.error(t("common.error"));
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -35,9 +47,8 @@ export default function WatchPairing() {
     try {
       const response = await api.watches.pair(pairingCode);
       if (response.success) {
-        pairWatch();
-        toast.success(isRTL ? "ساعت با موفقیت متصل شد" : "Watch paired successfully");
-        navigate("/watch-owner-info");
+        toast.success(isRTL ? "کد ثبت شد، لطفا کد ساعت را وارد کنید" : "Code registered, please enter watch code");
+        navigate("/watch-pairing-confirm");
       }
     } catch (error) {
       toast.error(t("common.error"));
@@ -68,24 +79,30 @@ export default function WatchPairing() {
 
           <div className="space-y-6">
             <div className="bg-background/50 rounded-xl p-8 text-center">
-              <div className="text-5xl font-bold tracking-wider text-primary mb-2">
-                {pairingCode}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {isRTL ? "کد اتصال" : "Pairing Code"}
-              </p>
+              {isGenerating ? (
+                <Skeleton height={60} width={200} className="mx-auto" />
+              ) : (
+                <>
+                  <div className="text-5xl font-bold tracking-wider text-primary mb-2">
+                    {pairingCode}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {isRTL ? "کد اتصال" : "Pairing Code"}
+                  </p>
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <Button
                 onClick={generateCode}
                 variant="outline"
-                disabled={isLoading}
+                disabled={isLoading || isGenerating}
               >
                 <RefreshCw size={18} className={isRTL ? "ms-2" : "me-2"} />
                 {t("watchPairing.regenerate")}
               </Button>
-              <Button onClick={handlePair} disabled={isLoading}>
+              <Button onClick={handlePair} disabled={isLoading || isGenerating}>
                 {isLoading ? t("common.loading") : t("watchPairing.codeEntered")}
               </Button>
             </div>
