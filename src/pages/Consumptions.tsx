@@ -330,20 +330,24 @@ export default function Consumptions() {
           </TabsContent>
 
           <TabsContent value="calendar" className="mt-6">
-            <Card variant="elevated" padding="default">
-              <FullCalendar
-                plugins={[dayGridPlugin, timeGridPlugin]}
-                initialView="dayGridMonth"
-                events={calendarEvents}
-                headerToolbar={{
-                  left: "prev,next today",
-                  center: "title",
-                  right: "dayGridMonth,timeGridWeek",
-                }}
-                locale={isRTL ? "fa" : "en"}
-                direction={isRTL ? "rtl" : "ltr"}
-                height="auto"
-              />
+            <Card variant="elevated" padding="default" className="overflow-hidden">
+              <div className="calendar-wrapper [&_.fc]:text-xs sm:[&_.fc]:text-sm [&_.fc-toolbar]:flex-col [&_.fc-toolbar]:gap-2 sm:[&_.fc-toolbar]:flex-row [&_.fc-toolbar-title]:text-sm sm:[&_.fc-toolbar-title]:text-base [&_.fc-button]:text-xs [&_.fc-button]:px-2 [&_.fc-button]:py-1 sm:[&_.fc-button]:px-3 sm:[&_.fc-button]:py-2 [&_.fc-header-toolbar]:mb-2 sm:[&_.fc-header-toolbar]:mb-4 [&_.fc-col-header-cell]:text-xs sm:[&_.fc-col-header-cell]:text-sm [&_.fc-daygrid-day-number]:text-xs sm:[&_.fc-daygrid-day-number]:text-sm">
+                <FullCalendar
+                  plugins={[dayGridPlugin, timeGridPlugin]}
+                  initialView="dayGridMonth"
+                  events={calendarEvents}
+                  headerToolbar={{
+                    left: "prev,next",
+                    center: "title",
+                    right: "today",
+                  }}
+                  locale={isRTL ? "fa" : "en"}
+                  direction={isRTL ? "rtl" : "ltr"}
+                  height="auto"
+                  contentHeight="auto"
+                  aspectRatio={1.2}
+                />
+              </div>
             </Card>
           </TabsContent>
         </Tabs>

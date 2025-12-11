@@ -101,13 +101,15 @@ export const CaregiverForm = ({
           <label className="text-sm font-medium">
             {isRTL ? "شماره موبایل" : "Mobile Number"}
           </label>
-          <PhoneInput
-            international
-            defaultCountry="IR"
-            value={mobile}
-            onChange={(value) => setMobile(value || "")}
-            className="flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-          />
+          <div dir="ltr">
+            <PhoneInput
+              international
+              defaultCountry="IR"
+              value={mobile}
+              onChange={(value) => setMobile(value || "")}
+              className="flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm [&_.PhoneInputCountry]:me-2"
+            />
+          </div>
         </div>
 
         <div className="space-y-2">

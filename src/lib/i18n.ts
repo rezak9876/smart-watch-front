@@ -44,6 +44,7 @@ const resources = {
         statusGood: "خوب",
         statusWarning: "هشدار",
         statusCritical: "بحرانی",
+        statusActive: "فعال",
       },
       // Profile
       profile: {
@@ -122,6 +123,8 @@ const resources = {
         skip: "رد شدن",
         done: "تمام",
         logout: "خروج",
+        cancel: "انصراف",
+        delete: "حذف",
       },
       // Tour
       tour: {
@@ -176,6 +179,7 @@ const resources = {
         statusGood: "Good",
         statusWarning: "Warning",
         statusCritical: "Critical",
+        statusActive: "Active",
       },
       // Profile
       profile: {
@@ -254,6 +258,8 @@ const resources = {
         skip: "Skip",
         done: "Done",
         logout: "Logout",
+        cancel: "Cancel",
+        delete: "Delete",
       },
       // Tour
       tour: {

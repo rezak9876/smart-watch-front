@@ -13,6 +13,9 @@ import {
   Bell,
   UserCheck,
   Clock,
+  Stethoscope,
+  Users,
+  User,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -26,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 type NotificationType = "fall" | "heart_rate" | "blood_oxygen" | "battery" | "gps" | "response" | "no_response" | "followup";
+type RecipientType = "elder" | "doctor" | "caregiver";
 
 interface NotificationConfig {
   type: NotificationType;
@@ -36,7 +40,7 @@ interface NotificationConfig {
   actions?: { fa: string; en: string }[];
 }
 
-const notificationConfigs: NotificationConfig[] = [
+const elderNotifications: NotificationConfig[] = [
   {
     type: "fall",
     icon: <AlertTriangle size={24} />,
@@ -53,49 +57,97 @@ const notificationConfigs: NotificationConfig[] = [
     icon: <Heart size={24} />,
     color: "text-health-critical",
     title: { fa: "ضربان قلب بالا", en: "High Heart Rate" },
-    message: { fa: "ضربان قلب به ۱۲۰ رسیده است", en: "Heart rate has reached 120 BPM" },
+    message: { fa: "ضربان قلب شما به ۱۲۰ رسیده است. آیا حالتان خوب است؟", en: "Your heart rate has reached 120 BPM. Are you okay?" },
+    actions: [
+      { fa: "خوبم", en: "I'm fine" },
+      { fa: "کمک می‌خواهم", en: "Need help" },
+    ],
   },
   {
     type: "blood_oxygen",
     icon: <Droplets size={24} />,
     color: "text-health-warning",
     title: { fa: "اکسیژن خون پایین", en: "Low Blood Oxygen" },
-    message: { fa: "اکسیژن خون به ۹۲٪ رسیده است", en: "Blood oxygen has dropped to 92%" },
+    message: { fa: "اکسیژن خون شما به ۹۲٪ رسیده است", en: "Your blood oxygen has dropped to 92%" },
   },
   {
     type: "battery",
     icon: <Battery size={24} />,
     color: "text-health-warning",
     title: { fa: "باتری کم", en: "Low Battery" },
-    message: { fa: "باتری ساعت ۱۵٪ است", en: "Watch battery is at 15%" },
+    message: { fa: "باتری ساعت شما ۱۵٪ است. لطفا شارژ کنید.", en: "Your watch battery is at 15%. Please charge it." },
+  },
+];
+
+const doctorNotifications: NotificationConfig[] = [
+  {
+    type: "fall",
+    icon: <AlertTriangle size={24} />,
+    color: "text-health-critical",
+    title: { fa: "سقوط بیمار", en: "Patient Fall" },
+    message: { fa: "بیمار علی احمدی سقوط کرده و هنوز پاسخ نداده است", en: "Patient Ali Ahmadi has fallen and hasn't responded yet" },
+    actions: [
+      { fa: "پیگیری می‌کنم", en: "I'll follow up" },
+    ],
   },
   {
-    type: "gps",
-    icon: <MapPin size={24} />,
-    color: "text-health-warning",
-    title: { fa: "خروج از محدوده", en: "Out of Range" },
-    message: { fa: "کاربر از محدوده امن خارج شده است", en: "User has left the safe zone" },
+    type: "heart_rate",
+    icon: <Heart size={24} />,
+    color: "text-health-critical",
+    title: { fa: "ضربان قلب خطرناک", en: "Dangerous Heart Rate" },
+    message: { fa: "ضربان قلب بیمار علی احمدی به ۱۵۰ رسیده است", en: "Patient Ali Ahmadi's heart rate has reached 150 BPM" },
   },
   {
     type: "response",
     icon: <UserCheck size={24} />,
     color: "text-health-good",
-    title: { fa: "پاسخ کاربر", en: "User Response" },
-    message: { fa: "کاربر پاسخ داد: من حالم خوب است", en: "User responded: I am fine" },
+    title: { fa: "پاسخ بیمار", en: "Patient Response" },
+    message: { fa: "بیمار علی احمدی پاسخ داد: خوبم، زمین نخوردم", en: "Patient Ali Ahmadi responded: I'm fine, didn't fall" },
   },
   {
     type: "no_response",
     icon: <Clock size={24} />,
     color: "text-health-critical",
-    title: { fa: "عدم پاسخ", en: "No Response" },
-    message: { fa: "کاربر به اعلان سقوط پاسخ نداده است", en: "User has not responded to fall notification" },
+    title: { fa: "عدم پاسخ بیمار", en: "No Patient Response" },
+    message: { fa: "بیمار علی احمدی به اعلان سقوط پاسخ نداده است (۵ دقیقه)", en: "Patient Ali Ahmadi hasn't responded to fall alert (5 min)" },
+    actions: [
+      { fa: "تماس می‌گیرم", en: "I'll call" },
+      { fa: "اورژانس", en: "Emergency" },
+    ],
+  },
+];
+
+const caregiverNotifications: NotificationConfig[] = [
+  {
+    type: "fall",
+    icon: <AlertTriangle size={24} />,
+    color: "text-health-critical",
+    title: { fa: "سقوط سالمند", en: "Elder Fall" },
+    message: { fa: "پدربزرگ سقوط کرده و هنوز پاسخ نداده است", en: "Grandfather has fallen and hasn't responded yet" },
+    actions: [
+      { fa: "پیگیری می‌کنم", en: "I'll follow up" },
+    ],
+  },
+  {
+    type: "gps",
+    icon: <MapPin size={24} />,
+    color: "text-health-warning",
+    title: { fa: "خروج از محدوده امن", en: "Left Safe Zone" },
+    message: { fa: "پدربزرگ از محدوده خانه خارج شده است", en: "Grandfather has left the home area" },
   },
   {
     type: "followup",
     icon: <Bell size={24} />,
     color: "text-primary",
-    title: { fa: "پیگیری", en: "Follow-up" },
-    message: { fa: "دکتر احمدی پیگیری کرد", en: "Dr. Ahmadi followed up" },
+    title: { fa: "پیگیری دکتر", en: "Doctor Follow-up" },
+    message: { fa: "دکتر رضایی وضعیت پدربزرگ را پیگیری کرد", en: "Dr. Rezaei followed up on grandfather's condition" },
+  },
+  {
+    type: "battery",
+    icon: <Battery size={24} />,
+    color: "text-health-warning",
+    title: { fa: "باتری کم ساعت", en: "Watch Low Battery" },
+    message: { fa: "باتری ساعت پدربزرگ ۱۰٪ است", en: "Grandfather's watch battery is at 10%" },
   },
 ];
 
@@ -130,9 +182,46 @@ export default function TestNotifications() {
     setActiveNotification(null);
   };
 
+  const NotificationGroup = ({
+    title,
+    icon,
+    notifications,
+    bgColor,
+  }: {
+    title: string;
+    icon: React.ReactNode;
+    notifications: NotificationConfig[];
+    bgColor: string;
+  }) => (
+    <Card variant="elevated" padding="lg" className="space-y-4">
+      <div className={`flex items-center gap-3 p-3 rounded-xl ${bgColor}`}>
+        {icon}
+        <h2 className="font-semibold">{title}</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {notifications.map((config) => (
+          <Button
+            key={config.type}
+            variant="outline"
+            className="h-auto py-3 justify-start gap-3 text-start"
+            onClick={() => showNotification(config)}
+          >
+            <div className={config.color}>{config.icon}</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium truncate">{isRTL ? config.title.fa : config.title.en}</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {isRTL ? config.message.fa : config.message.en}
+              </p>
+            </div>
+          </Button>
+        ))}
+      </div>
+    </Card>
+  );
+
   return (
-    <AppLayout requireAuth>
-      <div className="max-w-3xl mx-auto space-y-6">
+    <AppLayout>
+      <div className="max-w-4xl mx-auto space-y-6">
         <div>
           <h1 className="text-3xl font-bold mb-2">
             {isRTL ? "تست اعلان‌ها" : "Test Notifications"}
@@ -144,26 +233,26 @@ export default function TestNotifications() {
           </p>
         </div>
 
-        <Card variant="elevated" padding="lg">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {notificationConfigs.map((config) => (
-              <Button
-                key={config.type}
-                variant="outline"
-                className="h-auto py-4 justify-start gap-4"
-                onClick={() => showNotification(config)}
-              >
-                <div className={config.color}>{config.icon}</div>
-                <div className="text-start">
-                  <p className="font-semibold">{isRTL ? config.title.fa : config.title.en}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {isRTL ? config.message.fa : config.message.en}
-                  </p>
-                </div>
-              </Button>
-            ))}
-          </div>
-        </Card>
+        <NotificationGroup
+          title={isRTL ? "اعلان‌های سالمند (صاحب ساعت)" : "Elder Notifications (Watch Owner)"}
+          icon={<User size={20} />}
+          notifications={elderNotifications}
+          bgColor="bg-blue-500/10 text-blue-600"
+        />
+
+        <NotificationGroup
+          title={isRTL ? "اعلان‌های پزشک" : "Doctor Notifications"}
+          icon={<Stethoscope size={20} />}
+          notifications={doctorNotifications}
+          bgColor="bg-green-500/10 text-green-600"
+        />
+
+        <NotificationGroup
+          title={isRTL ? "اعلان‌های مراقب" : "Caregiver Notifications"}
+          icon={<Users size={20} />}
+          notifications={caregiverNotifications}
+          bgColor="bg-purple-500/10 text-purple-600"
+        />
 
         <Card variant="flat" padding="default">
           <p className="text-sm text-muted-foreground">
