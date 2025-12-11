@@ -117,25 +117,28 @@ export default function Chat() {
                   {isRTL ? "هنوز پیامی ارسال نشده است" : "No messages yet"}
                 </MessageList.Content>
               ) : (
-                messages.map((message) => (
-                  <Message
-                    key={message.id}
-                    model={{
-                      message: message.text,
-                      sentTime: message.timestamp,
-                      sender: message.senderId === user!.id ? "You" : "Other",
-                      direction: message.senderId === user!.id ? "outgoing" : "incoming",
-                      position: "single",
-                    }}
-                  >
-                    <Message.Footer
-                      sentTime={new Date(message.timestamp).toLocaleTimeString(
-                        isRTL ? "fa-IR" : "en-US",
-                        { hour: "2-digit", minute: "2-digit" }
-                      )}
-                    />
-                  </Message>
-                ))
+                messages.map((message) => {
+                  const isOwnMessage = message.senderId === "user" || message.senderId === user?.id;
+                  return (
+                    <Message
+                      key={message.id}
+                      model={{
+                        message: message.text,
+                        sentTime: message.timestamp,
+                        sender: isOwnMessage ? "You" : "Other",
+                        direction: isOwnMessage ? "outgoing" : "incoming",
+                        position: "single",
+                      }}
+                    >
+                      <Message.Footer
+                        sentTime={new Date(message.timestamp).toLocaleTimeString(
+                          isRTL ? "fa-IR" : "en-US",
+                          { hour: "2-digit", minute: "2-digit" }
+                        )}
+                      />
+                    </Message>
+                  );
+                })
               )}
             </MessageList>
 

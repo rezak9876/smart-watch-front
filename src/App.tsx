@@ -25,6 +25,7 @@ import PrescriptionEdit from "./pages/PrescriptionEdit";
 import Consumptions from "./pages/Consumptions";
 import Notifications from "./pages/Notifications";
 import TestNotifications from "./pages/TestNotifications";
+import TempSettings from "./pages/TempSettings";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
@@ -62,6 +63,7 @@ const App = () => {
             <Route path="/consumptions" element={<Consumptions />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/test-notifications" element={<TestNotifications />} />
+            <Route path="/temp-settings" element={<TempSettings />} />
             <Route path="/chat/:caregiverId" element={<Chat />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="*" element={<NotFound />} />
