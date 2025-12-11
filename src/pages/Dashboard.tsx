@@ -191,26 +191,24 @@ export default function Dashboard() {
                 key={card.key}
                 variant="elevated"
                 padding="default"
-                className="group hover:scale-[1.02] transition-transform"
+                className="group hover:scale-[1.02] transition-transform border border-border"
               >
                 <CardContent className="p-0">
                   {/* Mobile Layout */}
-                  <div className="flex flex-col items-center text-center space-y-3 md:hidden">
-                    <div className={cn("p-3 rounded-xl", bgColor)}>
-                      <Icon className={cn("w-6 h-6", textColor)} />
+                  <div className="flex flex-col items-center text-center space-y-2 md:hidden p-2">
+                    <div className={cn("p-2.5 rounded-xl", bgColor)}>
+                      <Icon className={cn("w-5 h-5", textColor)} />
                     </div>
-                    <div>
-                      <h3 className="text-xs font-medium text-muted-foreground mb-1">
-                        {card.label}
-                      </h3>
-                      <p className="text-2xl font-bold">
-                        {card.value}
-                        {card.unit && (
-                          <span className="text-xs text-muted-foreground ms-1">{card.unit}</span>
-                        )}
-                      </p>
-                    </div>
-                    <span className={cn("text-xs font-medium px-2 py-1 rounded-full", colorClasses)}>
+                    <h3 className="text-xs font-medium text-muted-foreground">
+                      {card.label}
+                    </h3>
+                    <p className="text-xl font-bold leading-tight">
+                      {card.value}
+                      {card.unit && (
+                        <span className="text-[10px] text-muted-foreground ms-0.5">{card.unit}</span>
+                      )}
+                    </p>
+                    <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full", colorClasses)}>
                       {getStatusLabel(card.status)}
                     </span>
                   </div>

@@ -261,6 +261,23 @@ export const api = {
           created_at: new Date().toISOString(),
           doctor_name: "دکتر محمد رضایی",
         },
+        {
+          id: "2",
+          items: [
+            { medication_id: "3", medication_name: "لوزارتان", cycle_hours: 24, total_count: 60 },
+          ],
+          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+          doctor_name: "دکتر سارا احمدی",
+        },
+        {
+          id: "3",
+          items: [
+            { medication_id: "4", medication_name: "امپرازول", cycle_hours: 12, total_count: 14 },
+            { medication_id: "5", medication_name: "ویتامین D", cycle_hours: 24, total_count: null },
+          ],
+          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+          doctor_name: "دکتر محمد رضایی",
+        },
       ];
     },
     store: async (data: any): Promise<any> => {
@@ -303,6 +320,7 @@ export const api = {
           prescription_item_id: "1",
           medication_name: "آسپرین",
           scheduled_at: new Date(today.setHours(8, 0, 0, 0)).toISOString(),
+          scheduled_time: new Date(today.setHours(8, 0, 0, 0)).toISOString(),
           consumed_at: new Date(today.setHours(8, 15, 0, 0)).toISOString(),
           status: "consumed",
         },
@@ -311,6 +329,7 @@ export const api = {
           prescription_item_id: "1",
           medication_name: "آسپرین",
           scheduled_at: new Date(today.setHours(16, 0, 0, 0)).toISOString(),
+          scheduled_time: new Date(today.setHours(16, 0, 0, 0)).toISOString(),
           consumed_at: null,
           status: "pending",
         },
@@ -319,6 +338,7 @@ export const api = {
           prescription_item_id: "2",
           medication_name: "متفورمین",
           scheduled_at: new Date(today.setHours(12, 0, 0, 0)).toISOString(),
+          scheduled_time: new Date(today.setHours(12, 0, 0, 0)).toISOString(),
           consumed_at: null,
           status: "missed",
         },
@@ -337,11 +357,12 @@ export const api = {
     getSchedule: async (date: string): Promise<any[]> => {
       await delay(500);
       console.log(`API: GET /consumptions/schedule?date=${date}`);
+      const today = new Date();
       return [
-        { time: "08:00", medication: "آسپرین", status: "consumed" },
-        { time: "12:00", medication: "متفورمین", status: "missed" },
-        { time: "16:00", medication: "آسپرین", status: "pending" },
-        { time: "20:00", medication: "متفورمین", status: "pending" },
+        { id: "s1", time: "08:00", medication: "آسپرین", medication_name: "آسپرین", scheduled_time: new Date(today.setHours(8, 0, 0, 0)).toISOString(), status: "consumed", consumed_at: new Date(today.setHours(8, 15, 0, 0)).toISOString() },
+        { id: "s2", time: "12:00", medication: "متفورمین", medication_name: "متفورمین", scheduled_time: new Date(today.setHours(12, 0, 0, 0)).toISOString(), status: "missed" },
+        { id: "s3", time: "16:00", medication: "آسپرین", medication_name: "آسپرین", scheduled_time: new Date(today.setHours(16, 0, 0, 0)).toISOString(), status: "pending" },
+        { id: "s4", time: "20:00", medication: "متفورمین", medication_name: "متفورمین", scheduled_time: new Date(today.setHours(20, 0, 0, 0)).toISOString(), status: "pending" },
       ];
     },
     getStats: async (): Promise<any> => {

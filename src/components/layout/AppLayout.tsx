@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { useTranslation } from "react-i18next";
@@ -7,17 +7,24 @@ import {
   Users,
   Pill,
   Bell,
-  MessageCircle,
   User,
   LogOut,
   Menu,
   X,
   FileText,
   Activity,
+  ChevronDown,
+  ChevronUp,
+  FlaskConical,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/base/Button";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -35,6 +42,7 @@ export const AppLayout = ({
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [medicationGroupOpen, setMedicationGroupOpen] = useState(false);
   const isRTL = i18n.language === "fa";
 
   useEffect(() => {
@@ -46,15 +54,30 @@ export const AppLayout = ({
     }
   }, [requireAuth, requireWatch, isAuthenticated, setupStatus, navigate]);
 
-  const navigation = [
+  // Check if any medication-related route is active
+  useEffect(() => {
+    const medicationPaths = ["/medications", "/prescriptions", "/consumptions"];
+    if (medicationPaths.some(path => location.pathname.startsWith(path))) {
+      setMedicationGroupOpen(true);
+    }
+  }, [location.pathname]);
+
+  const mainNavigation = [
     { name: t("dashboard.title"), icon: LayoutDashboard, path: "/dashboard" },
     { name: t("caregivers.title"), icon: Users, path: "/caregivers" },
+    { name: t("notifications.title"), icon: Bell, path: "/notifications" },
+    { name: t("profile.title"), icon: User, path: "/profile" },
+  ];
+
+  const medicationNavigation = [
     { name: t("medications.title"), icon: Pill, path: "/medications" },
     { name: isRTL ? "نسخه‌ها" : "Prescriptions", icon: FileText, path: "/prescriptions" },
     { name: isRTL ? "مصرف دارو" : "Consumption", icon: Activity, path: "/consumptions" },
-    { name: t("notifications.title"), icon: Bell, path: "/notifications" },
-    { name: t("chat.title"), icon: MessageCircle, path: "/chat" },
-    { name: t("profile.title"), icon: User, path: "/profile" },
+  ];
+
+  const testNavigation = [
+    { name: isRTL ? "تست اعلان‌ها" : "Test Notifications", icon: Bell, path: "/test-notifications" },
+    { name: isRTL ? "تنظیمات موقت" : "Temp Settings", icon: Settings, path: "/temp-settings" },
   ];
 
   const handleLogout = () => {
@@ -62,7 +85,54 @@ export const AppLayout = ({
     navigate("/auth");
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + "/");
+
+  const isMedicationGroupActive = medicationNavigation.some(item => isActive(item.path));
+
+  const NavItem = ({ item, onClick }: { item: typeof mainNavigation[0]; onClick?: () => void }) => {
+    const Icon = item.icon;
+    return (
+      <button
+        onClick={() => {
+          navigate(item.path);
+          onClick?.();
+        }}
+        className={cn(
+          "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-start",
+          isActive(item.path)
+            ? "bg-primary text-primary-foreground"
+            : "hover:bg-accent"
+        )}
+      >
+        <Icon size={20} />
+        <span>{item.name}</span>
+      </button>
+    );
+  };
+
+  const MedicationGroup = ({ onItemClick }: { onItemClick?: () => void }) => (
+    <Collapsible open={medicationGroupOpen} onOpenChange={setMedicationGroupOpen}>
+      <CollapsibleTrigger asChild>
+        <button
+          className={cn(
+            "w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors text-start",
+            isMedicationGroupActive ? "bg-primary/10 text-primary" : "hover:bg-accent"
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <FlaskConical size={20} />
+            <span>{isRTL ? "دارو و درمان" : "Medication & Treatment"}</span>
+          </div>
+          {medicationGroupOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="ps-4 space-y-1 mt-1">
+        {medicationNavigation.map((item) => (
+          <NavItem key={item.path} item={item} onClick={onItemClick} />
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
+  );
 
   return (
     <div className="min-h-screen bg-background" dir={isRTL ? "rtl" : "ltr"}>
@@ -88,29 +158,17 @@ export const AppLayout = ({
           className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
           onClick={() => setMenuOpen(false)}
         >
-          <nav className="fixed inset-y-0 start-0 w-64 bg-card border-e border-border p-4 shadow-elevated">
+          <nav
+            className="fixed inset-y-0 start-0 w-64 bg-card border-e border-border p-4 shadow-elevated overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="space-y-2">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => {
-                      navigate(item.path);
-                      setMenuOpen(false);
-                    }}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-start",
-                      isActive(item.path)
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-accent"
-                    )}
-                  >
-                    <Icon size={20} />
-                    <span>{item.name}</span>
-                  </button>
-                );
-              })}
+              {mainNavigation.map((item) => (
+                <NavItem key={item.path} item={item} onClick={() => setMenuOpen(false)} />
+              ))}
+              
+              <MedicationGroup onItemClick={() => setMenuOpen(false)} />
+
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors hover:bg-destructive hover:text-destructive-foreground text-start"
@@ -118,6 +176,16 @@ export const AppLayout = ({
                 <LogOut size={20} />
                 <span>{t("common.logout")}</span>
               </button>
+
+              {/* Test Section */}
+              <div className="pt-4 mt-4 border-t border-border">
+                <p className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase">
+                  {isRTL ? "تست و توسعه" : "Testing & Dev"}
+                </p>
+                {testNavigation.map((item) => (
+                  <NavItem key={item.path} item={item} onClick={() => setMenuOpen(false)} />
+                ))}
+              </div>
             </div>
           </nav>
         </div>
@@ -136,24 +204,21 @@ export const AppLayout = ({
               )}
             </div>
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-start",
-                      isActive(item.path)
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-accent"
-                    )}
-                  >
-                    <Icon size={20} />
-                    <span>{item.name}</span>
-                  </button>
-                );
-              })}
+              {mainNavigation.map((item) => (
+                <NavItem key={item.path} item={item} />
+              ))}
+              
+              <MedicationGroup />
+
+              {/* Test Section */}
+              <div className="pt-4 mt-4 border-t border-border">
+                <p className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase">
+                  {isRTL ? "تست و توسعه" : "Testing & Dev"}
+                </p>
+                {testNavigation.map((item) => (
+                  <NavItem key={item.path} item={item} />
+                ))}
+              </div>
             </nav>
             <div className="p-4 border-t border-border">
               <Button
