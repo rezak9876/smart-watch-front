@@ -7,6 +7,8 @@ import { Heart, Droplets, Battery, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Joyride, { Step, CallBackProps, STATUS } from "react-joyride";
 import { useAuthStore } from "@/store/authStore";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 interface HealthData {
   heartRate: { value: number; status: string };
@@ -14,6 +16,15 @@ interface HealthData {
   battery: { value: number; status: string };
   gps: { status: string };
 }
+
+const statusColorMap: Record<string, string> = {
+  excellent: "text-health-good bg-health-good/10",
+  good: "text-health-good bg-health-good/10",
+  warning: "text-health-warning bg-health-warning/10",
+  critical: "text-health-critical bg-health-critical/10",
+  active: "text-health-good bg-health-good/10",
+  inactive: "text-muted-foreground bg-muted",
+};
 
 export default function Dashboard() {
   const { t, i18n } = useTranslation();
@@ -35,21 +46,6 @@ export default function Dashboard() {
       setHealthData(data);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "excellent":
-        return "health-excellent";
-      case "good":
-        return "health-good";
-      case "warning":
-        return "health-warning";
-      case "critical":
-        return "health-critical";
-      default:
-        return "muted";
     }
   };
 
@@ -97,12 +93,53 @@ export default function Dashboard() {
     }
   };
 
+  const healthCards = [
+    {
+      key: "heartRate",
+      icon: Heart,
+      label: t("dashboard.heartRate"),
+      value: healthData?.heartRate.value,
+      unit: t("dashboard.bpm"),
+      status: healthData?.heartRate.status || "good",
+    },
+    {
+      key: "bloodOxygen",
+      icon: Droplets,
+      label: t("dashboard.bloodOxygen"),
+      value: healthData?.bloodOxygen.value,
+      unit: "%",
+      status: healthData?.bloodOxygen.status || "excellent",
+    },
+    {
+      key: "battery",
+      icon: Battery,
+      label: t("dashboard.battery"),
+      value: healthData?.battery.value,
+      unit: "%",
+      status: healthData?.battery.status || "good",
+    },
+    {
+      key: "gps",
+      icon: MapPin,
+      label: t("dashboard.gps"),
+      value: healthData?.gps.status === "active" ? t("dashboard.active") : t("dashboard.inactive"),
+      unit: "",
+      status: healthData?.gps.status || "inactive",
+    },
+  ];
+
   if (isLoading) {
     return (
       <AppLayout requireAuth requireWatch>
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="animate-pulse-soft text-muted-foreground">
-            {t("common.loading")}
+        <div className="space-y-6">
+          <div>
+            <Skeleton height={36} width={200} />
+            <Skeleton height={20} width={300} className="mt-2" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} height={160} className="rounded-xl" />
+            ))}
           </div>
         </div>
       </AppLayout>
@@ -139,174 +176,71 @@ export default function Dashboard() {
         <div>
           <h1 className="text-3xl font-bold mb-2">{t("dashboard.title")}</h1>
           <p className="text-muted-foreground">
-            {isRTL
-              ? "وضعیت سلامتی در یک نگاه"
-              : "Health status at a glance"}
+            {isRTL ? "وضعیت سلامتی در یک نگاه" : "Health status at a glance"}
           </p>
         </div>
 
-        <div className="health-cards grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Heart Rate Card */}
-          <Card variant="elevated" padding="default" className="group hover:scale-105 transition-transform">
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div
-                  className={cn(
-                    "p-3 rounded-xl",
-                    `bg-${getStatusColor(healthData?.heartRate.status || "good")}/10`
-                  )}
-                >
-                  <Heart
-                    className={cn(
-                      "w-6 h-6",
-                      `text-${getStatusColor(healthData?.heartRate.status || "good")}`
-                    )}
-                  />
-                </div>
-                <span
-                  className={cn(
-                    "text-xs font-medium px-2 py-1 rounded-full",
-                    `bg-${getStatusColor(healthData?.heartRate.status || "good")}/10`,
-                    `text-${getStatusColor(healthData?.heartRate.status || "good")}`
-                  )}
-                >
-                  {getStatusLabel(healthData?.heartRate.status || "good")}
-                </span>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  {t("dashboard.heartRate")}
-                </h3>
-                <p className="text-3xl font-bold">
-                  {healthData?.heartRate.value}
-                  <span className="text-sm text-muted-foreground ms-1">
-                    {t("dashboard.bpm")}
-                  </span>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="health-cards grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {healthCards.map((card) => {
+            const Icon = card.icon;
+            const colorClasses = statusColorMap[card.status] || statusColorMap.inactive;
+            const [textColor, bgColor] = colorClasses.split(" ");
 
-          {/* Blood Oxygen Card */}
-          <Card variant="elevated" padding="default" className="group hover:scale-105 transition-transform">
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div
-                  className={cn(
-                    "p-3 rounded-xl",
-                    `bg-${getStatusColor(healthData?.bloodOxygen.status || "excellent")}/10`
-                  )}
-                >
-                  <Droplets
-                    className={cn(
-                      "w-6 h-6",
-                      `text-${getStatusColor(healthData?.bloodOxygen.status || "excellent")}`
-                    )}
-                  />
-                </div>
-                <span
-                  className={cn(
-                    "text-xs font-medium px-2 py-1 rounded-full",
-                    `bg-${getStatusColor(healthData?.bloodOxygen.status || "excellent")}/10`,
-                    `text-${getStatusColor(healthData?.bloodOxygen.status || "excellent")}`
-                  )}
-                >
-                  {getStatusLabel(healthData?.bloodOxygen.status || "excellent")}
-                </span>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  {t("dashboard.bloodOxygen")}
-                </h3>
-                <p className="text-3xl font-bold">
-                  {healthData?.bloodOxygen.value}
-                  <span className="text-sm text-muted-foreground ms-1">%</span>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            return (
+              <Card
+                key={card.key}
+                variant="elevated"
+                padding="default"
+                className="group hover:scale-[1.02] transition-transform"
+              >
+                <CardContent className="p-0">
+                  {/* Mobile Layout */}
+                  <div className="flex flex-col items-center text-center space-y-3 md:hidden">
+                    <div className={cn("p-3 rounded-xl", bgColor)}>
+                      <Icon className={cn("w-6 h-6", textColor)} />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-medium text-muted-foreground mb-1">
+                        {card.label}
+                      </h3>
+                      <p className="text-2xl font-bold">
+                        {card.value}
+                        {card.unit && (
+                          <span className="text-xs text-muted-foreground ms-1">{card.unit}</span>
+                        )}
+                      </p>
+                    </div>
+                    <span className={cn("text-xs font-medium px-2 py-1 rounded-full", colorClasses)}>
+                      {getStatusLabel(card.status)}
+                    </span>
+                  </div>
 
-          {/* Battery Card */}
-          <Card variant="elevated" padding="default" className="group hover:scale-105 transition-transform">
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div
-                  className={cn(
-                    "p-3 rounded-xl",
-                    `bg-${getStatusColor(healthData?.battery.status || "good")}/10`
-                  )}
-                >
-                  <Battery
-                    className={cn(
-                      "w-6 h-6",
-                      `text-${getStatusColor(healthData?.battery.status || "good")}`
-                    )}
-                  />
-                </div>
-                <span
-                  className={cn(
-                    "text-xs font-medium px-2 py-1 rounded-full",
-                    `bg-${getStatusColor(healthData?.battery.status || "good")}/10`,
-                    `text-${getStatusColor(healthData?.battery.status || "good")}`
-                  )}
-                >
-                  {getStatusLabel(healthData?.battery.status || "good")}
-                </span>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  {t("dashboard.battery")}
-                </h3>
-                <p className="text-3xl font-bold">
-                  {healthData?.battery.value}
-                  <span className="text-sm text-muted-foreground ms-1">%</span>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* GPS Card */}
-          <Card variant="elevated" padding="default" className="group hover:scale-105 transition-transform">
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div
-                  className={cn(
-                    "p-3 rounded-xl",
-                    `bg-${healthData?.gps.status === "active" ? "health-good" : "muted"}/10`
-                  )}
-                >
-                  <MapPin
-                    className={cn(
-                      "w-6 h-6",
-                      `text-${healthData?.gps.status === "active" ? "health-good" : "muted"}`
-                    )}
-                  />
-                </div>
-                <span
-                  className={cn(
-                    "text-xs font-medium px-2 py-1 rounded-full",
-                    healthData?.gps.status === "active"
-                      ? "bg-health-good/10 text-health-good"
-                      : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {healthData?.gps.status === "active"
-                    ? t("dashboard.active")
-                    : t("dashboard.inactive")}
-                </span>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">
-                  {t("dashboard.gps")}
-                </h3>
-                <p className="text-2xl font-bold">
-                  {healthData?.gps.status === "active"
-                    ? t("dashboard.active")
-                    : t("dashboard.inactive")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                  {/* Desktop Layout */}
+                  <div className="hidden md:block space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className={cn("p-3 rounded-xl", bgColor)}>
+                        <Icon className={cn("w-6 h-6", textColor)} />
+                      </div>
+                      <span className={cn("text-xs font-medium px-2 py-1 rounded-full", colorClasses)}>
+                        {getStatusLabel(card.status)}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                        {card.label}
+                      </h3>
+                      <p className="text-3xl font-bold">
+                        {card.value}
+                        {card.unit && (
+                          <span className="text-sm text-muted-foreground ms-1">{card.unit}</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </AppLayout>
