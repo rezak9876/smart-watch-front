@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/smart-watch-front/sw.js', { scope: '/smart-watch-front/' })})}
